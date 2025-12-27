@@ -136,22 +136,22 @@ function generateAIVerdict(
   const topCity = recommendations[0];
   const aqiImprovement = Math.round(((currentAQI - topCity.averageAQI) / currentAQI) * 100);
 
-  let verdict = `🎯 Top Recommendation: ${topCity.name}, ${topCity.state}\n\n`;
+  let verdict = `Top Recommendation: ${topCity.name}, ${topCity.state}\n\n`;
   verdict += `Moving from ${profile.currentCity} to ${topCity.name} could reduce your AQI exposure by ${aqiImprovement}%. `;
   verdict += `This city scores ${topCity.suitabilityScore}/100 in overall suitability for your profile.\n\n`;
   
-  verdict += `📊 Key Benefits:\n`;
-  verdict += `• ${topCity.highlights[0]}\n`;
-  verdict += `• ${topCity.highlights[1] || 'Growing opportunities'}\n`;
-  verdict += `• AQI improvement from ${currentAQI} to ${topCity.averageAQI}\n\n`;
+  verdict += `Key Benefits:\n`;
+  verdict += `- ${topCity.highlights[0]}\n`;
+  verdict += `- ${topCity.highlights[1] || 'Growing opportunities'}\n`;
+  verdict += `- AQI improvement from ${currentAQI} to ${topCity.averageAQI}\n\n`;
 
   if (profile.profession === 'Remote Work') {
-    verdict += `💻 As a remote worker, ${topCity.name} offers excellent work-life balance with clean air and good connectivity.\n\n`;
+    verdict += `As a remote worker, ${topCity.name} offers excellent work-life balance with clean air and good connectivity.\n\n`;
   } else {
-    verdict += `💼 For ${profile.profession} professionals, this city offers a score of ${topCity.professionScore}/100 in career opportunities.\n\n`;
+    verdict += `For ${profile.profession} professionals, this city has good opportunities in the region.\n\n`;
   }
 
-  verdict += `⚠️ Consider: ${topCity.risks[0] || 'Research local specifics before relocating'}.\n\n`;
+  verdict += `Consider: ${topCity.risks[0] || 'Research local specifics before relocating'}.\n\n`;
   verdict += `This migration could significantly improve your quality of life and long-term health outcomes. We recommend visiting ${topCity.name} before making your final decision.`;
 
   return verdict;

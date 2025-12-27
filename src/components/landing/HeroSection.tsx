@@ -97,7 +97,11 @@ export function HeroSection({ onGetStarted }: HeroSectionProps) {
                 Find Your City
                 <ArrowRight className="w-5 h-5" />
               </Button>
-              <Button variant="clean" size="xl">
+              <Button 
+                variant="clean" 
+                size="xl"
+                onClick={() => window.open('https://www.aqi.in/in/real-time-air-quality-index-india', '_blank')}
+              >
                 <MapPin className="w-5 h-5" />
                 View AQI Map
               </Button>
@@ -108,21 +112,21 @@ export function HeroSection({ onGetStarted }: HeroSectionProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.6 }}
-              className="flex gap-8 mt-12"
+              className="flex flex-wrap gap-6 sm:gap-8 mt-12 p-4 bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50"
             >
-              <div>
-                <div className="font-display text-3xl font-bold text-foreground">25+</div>
-                <div className="text-sm text-muted-foreground">Cities Analyzed</div>
+              <div className="text-center sm:text-left">
+                <div className="font-display text-2xl sm:text-3xl font-bold text-foreground">25+</div>
+                <div className="text-xs sm:text-sm text-muted-foreground">Cities Analyzed</div>
               </div>
-              <div className="w-px bg-border" />
-              <div>
-                <div className="font-display text-3xl font-bold text-foreground">5 Year</div>
-                <div className="text-sm text-muted-foreground">AQI Data</div>
+              <div className="hidden sm:block w-px bg-border/50" />
+              <div className="text-center sm:text-left">
+                <div className="font-display text-2xl sm:text-3xl font-bold text-foreground">5 Year</div>
+                <div className="text-xs sm:text-sm text-muted-foreground">AQI Data</div>
               </div>
-              <div className="w-px bg-border" />
-              <div>
-                <div className="font-display text-3xl font-bold text-accent">100%</div>
-                <div className="text-sm text-muted-foreground">Free to Use</div>
+              <div className="hidden sm:block w-px bg-border/50" />
+              <div className="text-center sm:text-left">
+                <div className="font-display text-2xl sm:text-3xl font-bold text-accent">100%</div>
+                <div className="text-xs sm:text-sm text-muted-foreground">Free to Use</div>
               </div>
             </motion.div>
           </motion.div>
