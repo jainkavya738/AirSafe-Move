@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { MapPin, Home, Briefcase, Utensils, TrendingUp, AlertTriangle } from 'lucide-react';
+import { MapPin, Home, Utensils, TrendingUp, AlertTriangle } from 'lucide-react';
 import { CityRecommendation } from '@/types/migration';
 import { getAQICategoryLabel } from '@/data/indianCities';
 
@@ -71,7 +71,7 @@ export function CityCard({ city, rank, index }: CityCardProps) {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="grid grid-cols-3 gap-3 mb-4">
           <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
             <Home className="w-4 h-4 text-primary" />
             <div className="text-xs">
@@ -79,13 +79,6 @@ export function CityCard({ city, rank, index }: CityCardProps) {
               <div className="font-semibold text-foreground">
                 ₹{(city.rentRange.min / 1000).toFixed(0)}k - {(city.rentRange.max / 1000).toFixed(0)}k
               </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
-            <Briefcase className="w-4 h-4 text-primary" />
-            <div className="text-xs">
-              <div className="text-muted-foreground">Career</div>
-              <div className="font-semibold text-foreground">{city.professionScore}/100</div>
             </div>
           </div>
           <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
