@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { MapPin, Home, Utensils, TrendingUp, AlertTriangle } from 'lucide-react';
+import { MapPin, Home, Heart, TrendingUp, AlertTriangle } from 'lucide-react';
 import { CityRecommendation } from '@/types/migration';
 import { getAQICategoryLabel } from '@/data/indianCities';
 
@@ -42,14 +42,14 @@ export function CityCard({ city, rank, index }: CityCardProps) {
         {/* Header */}
         <div className="flex items-start gap-4 mb-4">
           <div className={`w-14 h-14 ${aqiColorClass} rounded-xl flex flex-col items-center justify-center`}>
-            <span className="text-lg font-bold leading-none">{city.averageAQI}</span>
+            <span className="text-lg font-bold leading-none">{city.moderateAQI}</span>
             <span className="text-[10px] opacity-80">AQI</span>
           </div>
           <div className="flex-1">
             <h3 className="font-display text-xl font-bold text-foreground">{city.name}</h3>
             <p className="text-muted-foreground text-sm flex items-center gap-1">
               <MapPin className="w-3 h-3" />
-              {city.state} • {city.distance} km away
+              {city.state} - {city.distance} km away
             </p>
           </div>
         </div>
@@ -77,15 +77,15 @@ export function CityCard({ city, rank, index }: CityCardProps) {
             <div className="text-xs">
               <div className="text-muted-foreground">Rent</div>
               <div className="font-semibold text-foreground">
-                ₹{(city.rentRange.min / 1000).toFixed(0)}k - {(city.rentRange.max / 1000).toFixed(0)}k
+                {(city.rentRange.min / 1000).toFixed(0)}k - {(city.rentRange.max / 1000).toFixed(0)}k
               </div>
             </div>
           </div>
           <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
-            <Utensils className="w-4 h-4 text-primary" />
+            <Heart className="w-4 h-4 text-primary" />
             <div className="text-xs">
-              <div className="text-muted-foreground">Food Fit</div>
-              <div className="font-semibold text-foreground">{city.foodCompatibility}%</div>
+              <div className="text-muted-foreground">Health</div>
+              <div className="font-semibold text-foreground">{city.healthScore}%</div>
             </div>
           </div>
           <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">

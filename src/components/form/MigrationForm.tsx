@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ArrowRight, User, MapPin, Settings } from 'lucide-react';
+import { ArrowLeft, ArrowRight, User, MapPin, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
-import { UserProfile, FormStep } from '@/types/migration';
+import { Checkbox } from '@/components/ui/checkbox';
+import { UserProfile, FormStep, FamilyType, HealthCondition } from '@/types/migration';
 import { indianCities } from '@/data/indianCities';
 
 interface MigrationFormProps {
@@ -25,11 +26,21 @@ const professions = [
   'Other',
 ];
 
-const foodPreferences = [
-  { value: 'veg', label: 'Vegetarian' },
-  { value: 'non-veg', label: 'Non-Vegetarian' },
-  { value: 'jain', label: 'Jain' },
-  { value: 'any', label: 'No Preference' },
+const familyTypes: { value: FamilyType; label: string }[] = [
+  { value: 'single', label: 'Single' },
+  { value: 'couple', label: 'Couple' },
+  { value: 'nuclear', label: 'Nuclear Family' },
+  { value: 'joint', label: 'Joint Family' },
+];
+
+const healthConditions: { value: HealthCondition; label: string; description: string }[] = [
+  { value: 'asthma', label: 'Asthma', description: 'Chronic respiratory condition' },
+  { value: 'copd', label: 'COPD', description: 'Chronic obstructive pulmonary disease' },
+  { value: 'bronchitis', label: 'Bronchitis', description: 'Inflammation of bronchial tubes' },
+  { value: 'allergies', label: 'Respiratory Allergies', description: 'Dust, pollen, or air allergies' },
+  { value: 'lung-disease', label: 'Lung Disease', description: 'Other lung-related conditions' },
+  { value: 'heart-disease', label: 'Heart Disease', description: 'Cardiovascular conditions' },
+  { value: 'elderly-respiratory', label: 'Elderly Respiratory Issues', description: 'Age-related breathing problems' },
 ];
 
 export function MigrationForm({ onSubmit, onBack }: MigrationFormProps) {
@@ -41,13 +52,19 @@ export function MigrationForm({ onSubmit, onBack }: MigrationFormProps) {
     profession: '',
     maxDistance: 500,
     monthlyRentBudget: undefined,
-    foodPreference: 'any',
+    familyDetails: {
+      familyType: 'nuclear',
+      totalMembers: 4,
+      children: 1,
+      elderly: 0,
+      healthConditions: [],
+    },
   });
 
   const steps: { id: FormStep; label: string; icon: typeof User }[] = [
     { id: 'personal', label: 'Personal Info', icon: User },
     { id: 'location', label: 'Location', icon: MapPin },
-    { id: 'preferences', label: 'Preferences', icon: Settings },
+    { id: 'family', label: 'Family & Health', icon: Users },
   ];
 
   const currentStepIndex = steps.findIndex(s => s.id === step);
@@ -80,7 +97,8 @@ export function MigrationForm({ onSubmit, onBack }: MigrationFormProps) {
       formData.age &&
       formData.currentCity &&
       formData.profession &&
-      formData.maxDistance
+      formData.maxDistance &&
+      formData.familyDetails
     );
   };
 
@@ -90,11 +108,26 @@ export function MigrationForm({ onSubmit, onBack }: MigrationFormProps) {
         return formData.name && formData.age && formData.profession;
       case 'location':
         return formData.currentCity && formData.maxDistance;
-      case 'preferences':
-        return true;
+      case 'family':
+        return formData.familyDetails?.familyType && formData.familyDetails?.totalMembers;
       default:
         return false;
     }
+  };
+
+  const handleHealthConditionToggle = (condition: HealthCondition) => {
+    const currentConditions = formData.familyDetails?.healthConditions || [];
+    const newConditions = currentConditions.includes(condition)
+      ? currentConditions.filter(c => c !== condition)
+      : [...currentConditions, condition];
+    
+    setFormData({
+      ...formData,
+      familyDetails: {
+        ...formData.familyDetails!,
+        healthConditions: newConditions,
+      },
+    });
   };
 
   return (
@@ -253,25 +286,10 @@ export function MigrationForm({ onSubmit, onBack }: MigrationFormProps) {
                         <span>2500 km</span>
                       </div>
                     </div>
-                  </div>
-                </>
-              )}
 
-              {step === 'preferences' && (
-                <>
-                  <div className="text-center mb-6">
-                    <h2 className="font-display text-2xl font-bold text-foreground">
-                      Lifestyle Preferences
-                    </h2>
-                    <p className="text-muted-foreground mt-1">
-                      Optional details for better recommendations
-                    </p>
-                  </div>
-
-                  <div className="space-y-4">
                     <div>
                       <Label htmlFor="rentBudget" className="text-foreground">
-                        Monthly Rent Budget (₹)
+                        Monthly Rent Budget (Optional)
                       </Label>
                       <Input
                         id="rentBudget"
@@ -287,26 +305,149 @@ export function MigrationForm({ onSubmit, onBack }: MigrationFormProps) {
                         className="mt-1"
                       />
                     </div>
+                  </div>
+                </>
+              )}
 
+              {step === 'family' && (
+                <>
+                  <div className="text-center mb-6">
+                    <h2 className="font-display text-2xl font-bold text-foreground">
+                      Family & Health Details
+                    </h2>
+                    <p className="text-muted-foreground mt-1">
+                      Help us find the best city for your family's health
+                    </p>
+                  </div>
+
+                  <div className="space-y-5">
                     <div>
-                      <Label htmlFor="foodPreference" className="text-foreground">Food Preference</Label>
+                      <Label htmlFor="familyType" className="text-foreground">Family Type</Label>
                       <Select
-                        value={formData.foodPreference}
-                        onValueChange={(value: UserProfile['foodPreference']) =>
-                          setFormData({ ...formData, foodPreference: value })
+                        value={formData.familyDetails?.familyType}
+                        onValueChange={(value: FamilyType) =>
+                          setFormData({
+                            ...formData,
+                            familyDetails: { ...formData.familyDetails!, familyType: value },
+                          })
                         }
                       >
                         <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Select food preference" />
+                          <SelectValue placeholder="Select family type" />
                         </SelectTrigger>
                         <SelectContent>
-                          {foodPreferences.map((pref) => (
-                            <SelectItem key={pref.value} value={pref.value}>
-                              {pref.label}
+                          {familyTypes.map((type) => (
+                            <SelectItem key={type.value} value={type.value}>
+                              {type.label}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <Label htmlFor="totalMembers" className="text-foreground text-sm">
+                          Total Members
+                        </Label>
+                        <Input
+                          id="totalMembers"
+                          type="number"
+                          min={1}
+                          max={20}
+                          value={formData.familyDetails?.totalMembers || ''}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              familyDetails: {
+                                ...formData.familyDetails!,
+                                totalMembers: parseInt(e.target.value) || 1,
+                              },
+                            })
+                          }
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="children" className="text-foreground text-sm">
+                          Children
+                        </Label>
+                        <Input
+                          id="children"
+                          type="number"
+                          min={0}
+                          max={10}
+                          value={formData.familyDetails?.children ?? ''}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              familyDetails: {
+                                ...formData.familyDetails!,
+                                children: parseInt(e.target.value) || 0,
+                              },
+                            })
+                          }
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="elderly" className="text-foreground text-sm">
+                          Elderly (60+)
+                        </Label>
+                        <Input
+                          id="elderly"
+                          type="number"
+                          min={0}
+                          max={10}
+                          value={formData.familyDetails?.elderly ?? ''}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              familyDetails: {
+                                ...formData.familyDetails!,
+                                elderly: parseInt(e.target.value) || 0,
+                              },
+                            })
+                          }
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label className="text-foreground mb-3 block">
+                        Health Conditions in Family (Select all that apply)
+                      </Label>
+                      <div className="grid sm:grid-cols-2 gap-3">
+                        {healthConditions.map((condition) => (
+                          <div
+                            key={condition.value}
+                            className={`flex items-start space-x-3 p-3 rounded-lg border transition-colors cursor-pointer ${
+                              formData.familyDetails?.healthConditions?.includes(condition.value)
+                                ? 'border-primary bg-primary/5'
+                                : 'border-border hover:border-primary/50'
+                            }`}
+                            onClick={() => handleHealthConditionToggle(condition.value)}
+                          >
+                            <Checkbox
+                              id={condition.value}
+                              checked={formData.familyDetails?.healthConditions?.includes(condition.value)}
+                              onCheckedChange={() => handleHealthConditionToggle(condition.value)}
+                            />
+                            <div className="flex-1">
+                              <label
+                                htmlFor={condition.value}
+                                className="text-sm font-medium text-foreground cursor-pointer"
+                              >
+                                {condition.label}
+                              </label>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                {condition.description}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </>

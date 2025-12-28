@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ArrowLeft, Download, Share2, Wind, TrendingDown, Shield, FileCheck } from 'lucide-react';
+import { ArrowLeft, Download, Share2, Wind, TrendingDown, Shield, Heart, Target, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MigrationReport } from '@/types/migration';
 import { CityCard } from './CityCard';
@@ -63,46 +63,66 @@ export function ResultsPage({ report, onBack, onStartOver }: ResultsPageProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="grid md:grid-cols-4 gap-4"
+            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4"
           >
-            <div className="glass-card rounded-2xl p-6 text-center">
-              <div className="w-12 h-12 mx-auto mb-3 aqi-unhealthy rounded-xl flex items-center justify-center">
-                <Wind className="w-6 h-6" />
+            <div className="glass-card rounded-2xl p-4 text-center">
+              <div className="w-10 h-10 mx-auto mb-2 aqi-unhealthy rounded-xl flex items-center justify-center">
+                <Wind className="w-5 h-5" />
               </div>
-              <div className="font-display text-2xl font-bold text-foreground">
+              <div className="font-display text-xl font-bold text-foreground">
                 {report.currentCityAQI}
               </div>
-              <div className="text-sm text-muted-foreground">Current City AQI</div>
+              <div className="text-xs text-muted-foreground">Current AQI</div>
             </div>
 
-            <div className="glass-card rounded-2xl p-6 text-center">
-              <div className="w-12 h-12 mx-auto mb-3 bg-accent/20 rounded-xl flex items-center justify-center">
-                <TrendingDown className="w-6 h-6 text-accent" />
+            <div className="glass-card rounded-2xl p-4 text-center">
+              <div className="w-10 h-10 mx-auto mb-2 bg-accent/20 rounded-xl flex items-center justify-center">
+                <Target className="w-5 h-5 text-accent" />
               </div>
-              <div className="font-display text-2xl font-bold text-accent">
+              <div className="font-display text-xl font-bold text-accent">
+                {report.targetAQI}
+              </div>
+              <div className="text-xs text-muted-foreground">Target AQI</div>
+            </div>
+
+            <div className="glass-card rounded-2xl p-4 text-center">
+              <div className="w-10 h-10 mx-auto mb-2 bg-primary/20 rounded-xl flex items-center justify-center">
+                <TrendingDown className="w-5 h-5 text-primary" />
+              </div>
+              <div className="font-display text-xl font-bold text-foreground">
                 {report.aqiRiskReduction}%
               </div>
-              <div className="text-sm text-muted-foreground">Avg. AQI Reduction</div>
+              <div className="text-xs text-muted-foreground">AQI Reduction</div>
             </div>
 
-            <div className="glass-card rounded-2xl p-6 text-center">
-              <div className="w-12 h-12 mx-auto mb-3 bg-primary/20 rounded-xl flex items-center justify-center">
-                <Shield className="w-6 h-6 text-primary" />
+            <div className="glass-card rounded-2xl p-4 text-center">
+              <div className="w-10 h-10 mx-auto mb-2 bg-aqi-good/20 rounded-xl flex items-center justify-center">
+                <Clock className="w-5 h-5 text-aqi-good" />
               </div>
-              <div className="font-display text-2xl font-bold text-foreground">
-                {report.overallReadinessScore}/100
+              <div className="font-display text-xl font-bold text-aqi-good">
+                +{report.estimatedLifeYearsGain}
               </div>
-              <div className="text-sm text-muted-foreground">Readiness Score</div>
+              <div className="text-xs text-muted-foreground">Life Years</div>
             </div>
 
-            <div className="glass-card rounded-2xl p-6 text-center">
-              <div className="w-12 h-12 mx-auto mb-3 bg-secondary/20 rounded-xl flex items-center justify-center">
-                <FileCheck className="w-6 h-6 text-secondary" />
+            <div className="glass-card rounded-2xl p-4 text-center">
+              <div className="w-10 h-10 mx-auto mb-2 bg-primary/20 rounded-xl flex items-center justify-center">
+                <Shield className="w-5 h-5 text-primary" />
               </div>
-              <div className="font-display text-2xl font-bold text-foreground">
+              <div className="font-display text-xl font-bold text-foreground">
+                {report.overallReadinessScore}
+              </div>
+              <div className="text-xs text-muted-foreground">Readiness</div>
+            </div>
+
+            <div className="glass-card rounded-2xl p-4 text-center">
+              <div className="w-10 h-10 mx-auto mb-2 bg-secondary/20 rounded-xl flex items-center justify-center">
+                <Heart className="w-5 h-5 text-secondary" />
+              </div>
+              <div className="font-display text-xl font-bold text-foreground">
                 {report.recommendations.length}
               </div>
-              <div className="text-sm text-muted-foreground">Cities Found</div>
+              <div className="text-xs text-muted-foreground">Cities</div>
             </div>
           </motion.div>
         </div>
@@ -186,7 +206,7 @@ export function ResultsPage({ report, onBack, onStartOver }: ResultsPageProps) {
             <h3 className="font-display text-lg font-semibold text-foreground mb-4">
               Your Profile Summary
             </h3>
-            <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 text-sm">
               <div>
                 <span className="text-muted-foreground">Current City:</span>
                 <span className="ml-2 font-medium text-foreground">{report.userProfile.currentCity}</span>
@@ -200,11 +220,23 @@ export function ResultsPage({ report, onBack, onStartOver }: ResultsPageProps) {
                 <span className="ml-2 font-medium text-foreground">{report.userProfile.maxDistance} km</span>
               </div>
               <div>
-                <span className="text-muted-foreground">Budget:</span>
+                <span className="text-muted-foreground">Family Type:</span>
+                <span className="ml-2 font-medium text-foreground capitalize">{report.userProfile.familyDetails.familyType}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Family Members:</span>
                 <span className="ml-2 font-medium text-foreground">
-                  {report.userProfile.monthlyRentBudget
-                    ? `₹${report.userProfile.monthlyRentBudget.toLocaleString()}`
-                    : 'Not specified'}
+                  {report.userProfile.familyDetails.totalMembers} 
+                  {report.userProfile.familyDetails.children > 0 && ` (${report.userProfile.familyDetails.children} children)`}
+                  {report.userProfile.familyDetails.elderly > 0 && ` (${report.userProfile.familyDetails.elderly} elderly)`}
+                </span>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Health Concerns:</span>
+                <span className="ml-2 font-medium text-foreground">
+                  {report.userProfile.familyDetails.healthConditions.length > 0
+                    ? `${report.userProfile.familyDetails.healthConditions.length} condition(s)`
+                    : 'None reported'}
                 </span>
               </div>
             </div>
