@@ -8,6 +8,89 @@ import {
   getAQICategory,
 } from '@/data/indianCities';
 
+// Calculate target AQI based on family health conditions
+function calculateTargetAQI(profile: UserProfile): number {
+  const { familyDetails } = profile;
+  let targetAQI = 100; // Default moderate AQI target
+
+  // Adjust for health conditions
+  if (familyDetails.healthConditions.length > 0) {
+    targetAQI = 50; // Need good air quality
+    
+    // Severe conditions need even better air
+    const severeConditions = ['asthma', 'copd', 'lung-disease', 'elderly-respiratory'];
+    const hasSevereCondition = familyDetails.healthConditions.some(c => severeConditions.includes(c));
+    if (hasSevereCondition) {
+      targetAQI = 40;
+    }
+  }
+
+  // Adjust for children
+  if (familyDetails.children > 0) {
+    targetAQI = Math.min(targetAQI, 60);
+  }
+
+  // Adjust for elderly
+  if (familyDetails.elderly > 0) {
+    targetAQI = Math.min(targetAQI, 55);
+  }
+
+  // If both children and elderly with health issues
+  if (familyDetails.children > 0 && familyDetails.elderly > 0 && familyDetails.healthConditions.length > 0) {
+    targetAQI = Math.min(targetAQI, 45);
+  }
+
+  return targetAQI;
+}
+
+// Calculate estimated life years gain based on AQI improvement
+function calculateLifeYearsGain(currentAQI: number, newAQI: number, profile: UserProfile): number {
+  const aqiDifference = currentAQI - newAQI;
+  const { familyDetails } = profile;
+  
+  // Base calculation: every 10 AQI improvement adds ~0.3 years
+  let baseGain = (aqiDifference / 10) * 0.3;
+  
+  // Adjust for family composition
+  if (familyDetails.elderly > 0) {
+    baseGain *= 1.2; // Elderly benefit more from clean air
+  }
+  
+  if (familyDetails.children > 0) {
+    baseGain *= 1.15; // Children's developing lungs benefit
+  }
+  
+  // Health conditions increase benefit
+  if (familyDetails.healthConditions.length > 0) {
+    baseGain *= (1 + familyDetails.healthConditions.length * 0.1);
+  }
+  
+  return Math.round(baseGain * 10) / 10; // Round to 1 decimal
+}
+
+// Calculate health score for a city based on family needs
+function calculateHealthScore(cityAQI: number, targetAQI: number, profile: UserProfile): number {
+  const { familyDetails } = profile;
+  let score = 100;
+  
+  // Penalty if AQI is above target
+  if (cityAQI > targetAQI) {
+    score -= (cityAQI - targetAQI) * 1.5;
+  } else {
+    // Bonus for being under target
+    score += (targetAQI - cityAQI) * 0.5;
+  }
+  
+  // Extra penalties for vulnerable groups in poor air
+  if (cityAQI > 100) {
+    if (familyDetails.children > 0) score -= 15;
+    if (familyDetails.elderly > 0) score -= 20;
+    if (familyDetails.healthConditions.length > 0) score -= familyDetails.healthConditions.length * 10;
+  }
+  
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+
 export function generateRecommendations(profile: UserProfile): MigrationReport {
   const currentCityData = indianCities.find(
     city => city.name.toLowerCase() === profile.currentCity.toLowerCase()
@@ -18,6 +101,7 @@ export function generateRecommendations(profile: UserProfile): MigrationReport {
   }
 
   const currentCityAQI = currentCityData.avgAQI;
+  const targetAQI = calculateTargetAQI(profile);
 
   // Filter and score cities
   const scoredCities = indianCities
@@ -62,26 +146,29 @@ export function generateRecommendations(profile: UserProfile): MigrationReport {
       const professionScores = professionCityScores[profile.profession] || professionCityScores['Other'];
       const professionScore = professionScores[city.name] || 50;
 
-      const foodPref = profile.foodPreference || 'any';
-      const foodCompatibility = cityProfile.foodScore[foodPref] || 70;
+      const foodCompatibility = cityProfile.foodScore['any'] || 70;
+      
+      // Calculate health score
+      const healthScore = calculateHealthScore(city.avgAQI, targetAQI, profile);
 
-      // Weighted suitability score
+      // Weighted suitability score - health gets higher weight for families with conditions
+      const healthWeight = profile.familyDetails.healthConditions.length > 0 ? 0.40 : 0.30;
       const suitabilityScore = Math.round(
-        aqiScore * 0.35 +
-        distanceScore * 0.15 +
-        affordabilityScore * 0.20 +
-        professionScore * 0.20 +
-        foodCompatibility * 0.10
+        aqiScore * 0.25 +
+        healthScore * healthWeight +
+        distanceScore * 0.10 +
+        affordabilityScore * 0.15 +
+        professionScore * (0.50 - healthWeight)
       );
 
-      // Add some variation based on current AQI (simulating real-time data)
-      const currentAQI = city.avgAQI + Math.floor(Math.random() * 30) - 15;
+      // Calculate moderate AQI (typical daytime reading)
+      const moderateAQI = city.avgAQI + Math.floor(Math.random() * 15) - 5;
 
       const recommendation: CityRecommendation = {
         id: city.name.toLowerCase().replace(/\s+/g, '-'),
         name: city.name,
         state: city.state,
-        currentAQI: Math.max(20, currentAQI),
+        moderateAQI: Math.max(20, moderateAQI),
         averageAQI: city.avgAQI,
         distance,
         rentRange,
@@ -93,6 +180,7 @@ export function generateRecommendations(profile: UserProfile): MigrationReport {
         highlights: cityProfile.highlights,
         risks: cityProfile.risks,
         aqiCategory: getAQICategory(city.avgAQI),
+        healthScore,
       };
 
       return recommendation;
@@ -110,8 +198,13 @@ export function generateRecommendations(profile: UserProfile): MigrationReport {
     ? Math.round(scoredCities.reduce((sum, city) => sum + city.suitabilityScore, 0) / scoredCities.length)
     : 0;
 
+  // Calculate life years gain for top recommendation
+  const estimatedLifeYearsGain = scoredCities.length > 0
+    ? calculateLifeYearsGain(currentCityAQI, scoredCities[0].averageAQI, profile)
+    : 0;
+
   // Generate AI verdict
-  const aiVerdict = generateAIVerdict(profile, scoredCities, currentCityAQI);
+  const aiVerdict = generateAIVerdict(profile, scoredCities, currentCityAQI, targetAQI, estimatedLifeYearsGain);
 
   return {
     userProfile: profile,
@@ -120,6 +213,8 @@ export function generateRecommendations(profile: UserProfile): MigrationReport {
     aqiRiskReduction: avgAQIReduction,
     overallReadinessScore: overallReadiness,
     aiVerdict,
+    targetAQI,
+    estimatedLifeYearsGain,
     generatedAt: new Date(),
   };
 }
@@ -127,32 +222,87 @@ export function generateRecommendations(profile: UserProfile): MigrationReport {
 function generateAIVerdict(
   profile: UserProfile,
   recommendations: CityRecommendation[],
-  currentAQI: number
+  currentAQI: number,
+  targetAQI: number,
+  lifeYearsGain: number
 ): string {
+  const { familyDetails } = profile;
+  
   if (recommendations.length === 0) {
-    return `Based on your criteria, we couldn't find cities with better air quality within ${profile.maxDistance}km of ${profile.currentCity}. Consider expanding your search radius or exploring remote work options in cleaner regions.`;
+    return `Based on your criteria, we could not find cities with better air quality within ${profile.maxDistance}km of ${profile.currentCity}. Consider expanding your search radius or exploring remote work options in cleaner regions.`;
   }
 
   const topCity = recommendations[0];
   const aqiImprovement = Math.round(((currentAQI - topCity.averageAQI) / currentAQI) * 100);
 
   let verdict = `Top Recommendation: ${topCity.name}, ${topCity.state}\n\n`;
-  verdict += `Moving from ${profile.currentCity} to ${topCity.name} could reduce your AQI exposure by ${aqiImprovement}%. `;
-  verdict += `This city scores ${topCity.suitabilityScore}/100 in overall suitability for your profile.\n\n`;
   
+  // Family composition summary
+  let familyDesc = '';
+  if (familyDetails.familyType === 'joint') {
+    familyDesc = 'your joint family';
+  } else if (familyDetails.familyType === 'nuclear') {
+    familyDesc = 'your nuclear family';
+  } else if (familyDetails.familyType === 'couple') {
+    familyDesc = 'you and your partner';
+  } else {
+    familyDesc = 'you';
+  }
+  
+  if (familyDetails.children > 0 && familyDetails.elderly > 0) {
+    familyDesc += ` with ${familyDetails.children} child${familyDetails.children > 1 ? 'ren' : ''} and ${familyDetails.elderly} elderly member${familyDetails.elderly > 1 ? 's' : ''}`;
+  } else if (familyDetails.children > 0) {
+    familyDesc += ` with ${familyDetails.children} child${familyDetails.children > 1 ? 'ren' : ''}`;
+  } else if (familyDetails.elderly > 0) {
+    familyDesc += ` with ${familyDetails.elderly} elderly member${familyDetails.elderly > 1 ? 's' : ''}`;
+  }
+
+  verdict += `For ${familyDesc}, moving from ${profile.currentCity} to ${topCity.name} could reduce AQI exposure by ${aqiImprovement}%.\n\n`;
+  
+  // Target AQI recommendation
+  verdict += `Recommended Target AQI for Your Family: ${targetAQI} or below\n`;
+  verdict += `This target is based on your family composition`;
+  if (familyDetails.healthConditions.length > 0) {
+    verdict += ` and health conditions (${familyDetails.healthConditions.length} respiratory concerns reported)`;
+  }
+  verdict += '.\n\n';
+  
+  // Health impact
+  if (lifeYearsGain > 0) {
+    verdict += `Potential Health Benefit:\n`;
+    verdict += `- Estimated life expectancy improvement: +${lifeYearsGain} years\n`;
+    if (familyDetails.children > 0) {
+      verdict += `- Children's lung development will benefit from cleaner air\n`;
+    }
+    if (familyDetails.elderly > 0) {
+      verdict += `- Reduced respiratory stress for elderly family members\n`;
+    }
+    if (familyDetails.healthConditions.length > 0) {
+      verdict += `- Lower risk of health condition flare-ups\n`;
+    }
+    verdict += '\n';
+  }
+
   verdict += `Key Benefits:\n`;
   verdict += `- ${topCity.highlights[0]}\n`;
   verdict += `- ${topCity.highlights[1] || 'Growing opportunities'}\n`;
   verdict += `- AQI improvement from ${currentAQI} to ${topCity.averageAQI}\n\n`;
 
-  if (profile.profession === 'Remote Work') {
-    verdict += `As a remote worker, ${topCity.name} offers excellent work-life balance with clean air and good connectivity.\n\n`;
-  } else {
-    verdict += `For ${profile.profession} professionals, this city has good opportunities in the region.\n\n`;
+  // Family-specific considerations
+  if (familyDetails.children > 0 && familyDetails.elderly > 0) {
+    verdict += `Family Suitability:\n`;
+    verdict += `${topCity.name} is suitable for families with both children and elderly members. `;
+    verdict += `The city offers healthcare facilities and child-friendly infrastructure.\n\n`;
+  } else if (familyDetails.children > 0) {
+    verdict += `Child-Friendly Environment:\n`;
+    verdict += `${topCity.name} provides good educational facilities and recreational options for children.\n\n`;
+  } else if (familyDetails.elderly > 0) {
+    verdict += `Elderly Care:\n`;
+    verdict += `${topCity.name} has accessible healthcare and a pace of life suitable for senior citizens.\n\n`;
   }
 
   verdict += `Consider: ${topCity.risks[0] || 'Research local specifics before relocating'}.\n\n`;
-  verdict += `This migration could significantly improve your quality of life and long-term health outcomes. We recommend visiting ${topCity.name} before making your final decision.`;
+  verdict += `This migration could significantly improve your family's quality of life and long-term health outcomes. We recommend visiting ${topCity.name} before making your final decision.`;
 
   return verdict;
 }

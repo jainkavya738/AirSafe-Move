@@ -1,3 +1,22 @@
+export type FamilyType = 'nuclear' | 'joint' | 'single' | 'couple';
+
+export type HealthCondition = 
+  | 'asthma'
+  | 'copd'
+  | 'bronchitis'
+  | 'allergies'
+  | 'lung-disease'
+  | 'heart-disease'
+  | 'elderly-respiratory';
+
+export interface FamilyDetails {
+  familyType: FamilyType;
+  totalMembers: number;
+  children: number;
+  elderly: number;
+  healthConditions: HealthCondition[];
+}
+
 export interface UserProfile {
   name: string;
   age: number;
@@ -5,14 +24,14 @@ export interface UserProfile {
   profession: string;
   maxDistance: number;
   monthlyRentBudget?: number;
-  foodPreference?: 'veg' | 'non-veg' | 'jain' | 'any';
+  familyDetails: FamilyDetails;
 }
 
 export interface CityRecommendation {
   id: string;
   name: string;
   state: string;
-  currentAQI: number;
+  moderateAQI: number;
   averageAQI: number;
   distance: number;
   rentRange: {
@@ -27,6 +46,7 @@ export interface CityRecommendation {
   highlights: string[];
   risks: string[];
   aqiCategory: 'good' | 'moderate' | 'poor' | 'unhealthy' | 'hazardous';
+  healthScore: number;
 }
 
 export interface MigrationReport {
@@ -36,7 +56,9 @@ export interface MigrationReport {
   aqiRiskReduction: number;
   overallReadinessScore: number;
   aiVerdict: string;
+  targetAQI: number;
+  estimatedLifeYearsGain: number;
   generatedAt: Date;
 }
 
-export type FormStep = 'personal' | 'location' | 'preferences' | 'results';
+export type FormStep = 'personal' | 'location' | 'family';
