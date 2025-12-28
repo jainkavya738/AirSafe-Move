@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Wind, MapPin, Shield, ArrowRight } from 'lucide-react';
+import { Wind, Shield, ArrowRight, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface HeroSectionProps {
@@ -97,14 +97,6 @@ export function HeroSection({ onGetStarted }: HeroSectionProps) {
                 Find Your City
                 <ArrowRight className="w-5 h-5" />
               </Button>
-              <Button 
-                variant="clean" 
-                size="xl"
-                onClick={() => window.open('https://www.aqi.in/in/real-time-air-quality-index-india', '_blank')}
-              >
-                <MapPin className="w-5 h-5" />
-                View AQI Map
-              </Button>
             </div>
 
             {/* Stats */}
@@ -112,21 +104,19 @@ export function HeroSection({ onGetStarted }: HeroSectionProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.6 }}
-              className="flex flex-wrap gap-6 sm:gap-8 mt-12 p-4 bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50"
+              className="grid grid-cols-3 gap-4 sm:gap-6 mt-12 p-6 bg-card/80 backdrop-blur-sm rounded-2xl border border-border/50 shadow-sm"
             >
-              <div className="text-center sm:text-left">
-                <div className="font-display text-2xl sm:text-3xl font-bold text-foreground">25+</div>
-                <div className="text-xs sm:text-sm text-muted-foreground">Cities Analyzed</div>
+              <div className="text-center">
+                <div className="font-display text-xl sm:text-3xl font-bold text-foreground">25+</div>
+                <div className="text-xs sm:text-sm text-muted-foreground mt-1">Cities Analyzed</div>
               </div>
-              <div className="hidden sm:block w-px bg-border/50" />
-              <div className="text-center sm:text-left">
-                <div className="font-display text-2xl sm:text-3xl font-bold text-foreground">5 Year</div>
-                <div className="text-xs sm:text-sm text-muted-foreground">AQI Data</div>
+              <div className="text-center border-x border-border/50">
+                <div className="font-display text-xl sm:text-3xl font-bold text-foreground">5 Year</div>
+                <div className="text-xs sm:text-sm text-muted-foreground mt-1">AQI Data</div>
               </div>
-              <div className="hidden sm:block w-px bg-border/50" />
-              <div className="text-center sm:text-left">
-                <div className="font-display text-2xl sm:text-3xl font-bold text-accent">100%</div>
-                <div className="text-xs sm:text-sm text-muted-foreground">Free to Use</div>
+              <div className="text-center">
+                <div className="font-display text-xl sm:text-3xl font-bold text-accent">100%</div>
+                <div className="text-xs sm:text-sm text-muted-foreground mt-1">Free to Use</div>
               </div>
             </motion.div>
           </motion.div>

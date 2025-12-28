@@ -80,9 +80,9 @@ export function ResultsPage({ report, onBack, onStartOver }: ResultsPageProps) {
                 <Target className="w-5 h-5 text-accent" />
               </div>
               <div className="font-display text-xl font-bold text-accent">
-                {report.targetAQI}
+                {report.targetAQI.min} - {report.targetAQI.max}
               </div>
-              <div className="text-xs text-muted-foreground">Target AQI</div>
+              <div className="text-xs text-muted-foreground">Target AQI Range</div>
             </div>
 
             <div className="glass-card rounded-2xl p-4 text-center">

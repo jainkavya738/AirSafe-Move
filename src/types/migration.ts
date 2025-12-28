@@ -49,6 +49,11 @@ export interface CityRecommendation {
   healthScore: number;
 }
 
+export interface TargetAQIRange {
+  min: number;
+  max: number;
+}
+
 export interface MigrationReport {
   userProfile: UserProfile;
   currentCityAQI: number;
@@ -56,7 +61,7 @@ export interface MigrationReport {
   aqiRiskReduction: number;
   overallReadinessScore: number;
   aiVerdict: string;
-  targetAQI: number;
+  targetAQI: TargetAQIRange;
   estimatedLifeYearsGain: number;
   generatedAt: Date;
 }

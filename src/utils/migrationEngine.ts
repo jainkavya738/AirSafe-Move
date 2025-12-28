@@ -1,4 +1,4 @@
-import { UserProfile, CityRecommendation, MigrationReport } from '@/types/migration';
+import { UserProfile, CityRecommendation, MigrationReport, TargetAQIRange } from '@/types/migration';
 import {
   indianCities,
   professionCityScores,
@@ -8,39 +8,43 @@ import {
   getAQICategory,
 } from '@/data/indianCities';
 
-// Calculate target AQI based on family health conditions
-function calculateTargetAQI(profile: UserProfile): number {
+// Calculate target AQI range based on family health conditions
+function calculateTargetAQI(profile: UserProfile): TargetAQIRange {
   const { familyDetails } = profile;
-  let targetAQI = 100; // Default moderate AQI target
+  let maxAQI = 100; // Default moderate AQI target
 
   // Adjust for health conditions
   if (familyDetails.healthConditions.length > 0) {
-    targetAQI = 50; // Need good air quality
+    maxAQI = 50; // Need good air quality
     
     // Severe conditions need even better air
     const severeConditions = ['asthma', 'copd', 'lung-disease', 'elderly-respiratory'];
     const hasSevereCondition = familyDetails.healthConditions.some(c => severeConditions.includes(c));
     if (hasSevereCondition) {
-      targetAQI = 40;
+      maxAQI = 40;
     }
   }
 
   // Adjust for children
   if (familyDetails.children > 0) {
-    targetAQI = Math.min(targetAQI, 60);
+    maxAQI = Math.min(maxAQI, 60);
   }
 
   // Adjust for elderly
   if (familyDetails.elderly > 0) {
-    targetAQI = Math.min(targetAQI, 55);
+    maxAQI = Math.min(maxAQI, 55);
   }
 
   // If both children and elderly with health issues
   if (familyDetails.children > 0 && familyDetails.elderly > 0 && familyDetails.healthConditions.length > 0) {
-    targetAQI = Math.min(targetAQI, 45);
+    maxAQI = Math.min(maxAQI, 45);
   }
 
-  return targetAQI;
+  // Return a range (min is always 0 for ideal, max based on conditions)
+  return {
+    min: 0,
+    max: maxAQI
+  };
 }
 
 // Calculate estimated life years gain based on AQI improvement
@@ -69,16 +73,16 @@ function calculateLifeYearsGain(currentAQI: number, newAQI: number, profile: Use
 }
 
 // Calculate health score for a city based on family needs
-function calculateHealthScore(cityAQI: number, targetAQI: number, profile: UserProfile): number {
+function calculateHealthScore(cityAQI: number, targetAQI: TargetAQIRange, profile: UserProfile): number {
   const { familyDetails } = profile;
   let score = 100;
   
-  // Penalty if AQI is above target
-  if (cityAQI > targetAQI) {
-    score -= (cityAQI - targetAQI) * 1.5;
+  // Penalty if AQI is above target max
+  if (cityAQI > targetAQI.max) {
+    score -= (cityAQI - targetAQI.max) * 1.5;
   } else {
     // Bonus for being under target
-    score += (targetAQI - cityAQI) * 0.5;
+    score += (targetAQI.max - cityAQI) * 0.5;
   }
   
   // Extra penalties for vulnerable groups in poor air
@@ -223,7 +227,7 @@ function generateAIVerdict(
   profile: UserProfile,
   recommendations: CityRecommendation[],
   currentAQI: number,
-  targetAQI: number,
+  targetAQI: TargetAQIRange,
   lifeYearsGain: number
 ): string {
   const { familyDetails } = profile;
@@ -259,9 +263,9 @@ function generateAIVerdict(
 
   verdict += `For ${familyDesc}, moving from ${profile.currentCity} to ${topCity.name} could reduce AQI exposure by ${aqiImprovement}%.\n\n`;
   
-  // Target AQI recommendation
-  verdict += `Recommended Target AQI for Your Family: ${targetAQI} or below\n`;
-  verdict += `This target is based on your family composition`;
+  // Target AQI recommendation with range
+  verdict += `Recommended Target AQI Range for Your Family: ${targetAQI.min} - ${targetAQI.max}\n`;
+  verdict += `This range is based on your family composition`;
   if (familyDetails.healthConditions.length > 0) {
     verdict += ` and health conditions (${familyDetails.healthConditions.length} respiratory concerns reported)`;
   }
