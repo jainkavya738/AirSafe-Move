@@ -16,6 +16,6 @@ export default defineConfig(({ mode }) => ({
     },
   },
   preview: {
-    allowedHosts: ['airsafe-move.onrender.com'],
+    allowedHosts: ['.onrender.com'],
   },
 }));
