@@ -1,5 +1,6 @@
-**AirSafe-Move**
-#An Intelligent Air-Quality–Aware Mobility Prototype
+#AirSafe-Move
+
+###An Intelligent Air-Quality–Aware Mobility Prototype
 
 AirSafe-Move is a hackathon prototype built by Team Vayu, focused on enabling safer and smarter movement decisions by leveraging modern web technologies and a clean, scalable frontend architecture.
 This project was developed under hackathon constraints, emphasizing rapid prototyping, clarity of design, and real-world applicability.
@@ -40,7 +41,7 @@ This project is built using:
 
 #Setup Instructions
 # Clone the repository
-git clone <YOUR_GIT_URL>
+git clone https://github.com/Scar3max/AirSafe-Move.git
 
 # Navigate to the project directory
 cd AirSafe-Move-main

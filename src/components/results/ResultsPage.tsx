@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ArrowLeft, Download, Share2, Wind, TrendingDown, Shield, Heart, Target, Clock } from 'lucide-react';
+import { ArrowLeft, Download, Wind, TrendingDown, Shield, Heart, Target, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MigrationReport } from '@/types/migration';
 import { CityCard } from './CityCard';
@@ -18,6 +18,53 @@ export function ResultsPage({ report, onBack, onStartOver }: ResultsPageProps) {
     }).format(date);
   };
 
+  const handleDownload = () => {
+    const reportContent = `
+  Migration Readiness Report
+  ==========================
+  
+  Name: ${report.userProfile.name}
+  Generated On: ${formatDate(report.generatedAt)}
+  
+  Current AQI: ${report.currentCityAQI}
+  Target AQI Range: ${report.targetAQI.min} - ${report.targetAQI.max}
+  AQI Reduction: ${report.aqiRiskReduction}%
+  Estimated Life Years Gain: +${report.estimatedLifeYearsGain}
+  Readiness Score: ${report.overallReadinessScore}
+  
+  AI Migration Advisory:
+  ----------------------
+  ${report.aiVerdict}
+  
+  Recommended Cities:
+  -------------------
+  ${report.recommendations
+    .map(
+      (city, index) =>
+        `${index + 1}. ${city.name} (${city.state})
+     AQI: ${city.aqi}
+     Distance: ${city.distance} km`
+    )
+    .join('\n\n')}
+  `;
+  
+    const blob = new Blob([reportContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+  
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Migration_Report_${report.userProfile.name.replace(
+      /\s+/g,
+      '_'
+    )}.txt`;
+  
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -33,13 +80,9 @@ export function ResultsPage({ report, onBack, onStartOver }: ResultsPageProps) {
               Back
             </Button>
             <div className="flex gap-2">
-              <Button variant="clean" size="sm">
+              <Button variant="clean" size="sm" onClick={handleDownload}>
                 <Download className="w-4 h-4 mr-2" />
                 Download Report
-              </Button>
-              <Button variant="clean" size="sm">
-                <Share2 className="w-4 h-4 mr-2" />
-                Share
               </Button>
             </div>
           </motion.div>
